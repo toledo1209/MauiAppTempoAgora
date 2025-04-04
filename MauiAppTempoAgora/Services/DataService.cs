@@ -1,5 +1,7 @@
 ﻿using MauiAppTempoAgora.Models;
 using Newtonsoft.Json.Linq;
+using System.Net;
+using Microsoft.Maui.Networking; // Importação necessária para verificar a conexão
 
 
 namespace MauiAppTempoAgora.Services
@@ -15,10 +17,22 @@ namespace MauiAppTempoAgora.Services
             string url = $"https://api.openweathermap.org/data/2.5/weather?" +
                 $"q={cidade}&units=metric&appid={chave}";
 
-           using (HttpClient client = new HttpClient())
+
+            // Verifica se o dispositivo está conectado à internet antes de fazer a requisição
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                throw new Exception("Sem conexão com a internet. Verifique sua conexão e tente novamente.");
+            }
+
+            using (HttpClient client = new HttpClient())
 
             {
                 HttpResponseMessage resp = await client.GetAsync(url);
+
+                if (resp.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
                 if (resp.IsSuccessStatusCode)
                 {
@@ -45,11 +59,13 @@ namespace MauiAppTempoAgora.Services
 
                     }; // fecha obj do tempo
 
+
                 }// fecha if
 
 
-            } // fecha laço using
+              } // fecha laço using
 
+                                                            
 
             return t;
         }
